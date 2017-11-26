@@ -52,29 +52,60 @@ public class Parser{
 	    			data = splitLine[7];
 	    			//Check if our address is between 0x40000818 to 0x40000C14 
 	    			if((Integer.parseInt("40000818", 16)) <= (Integer.parseInt(address, 16))
-	    				&&	(Integer.parseInt(address, 16)) < ((Integer.parseInt("40000818", 16)) + numOfWords)) {
-	    				ArrayList<String> wordsAsArray = splitWords(data, 4);
-	    				for (int i = 0; i < wordsAsArray.size(); i++) {
-	    					
-	    					/* <Conditional statements that parse
-	    					 * each word using the word fields
-	    					 * chart> goes here	
-	    					 */
-	    					
-	    					//Split our split word into each split. Such as 1093 is 1,0,9,3 in an array
-	    					ArrayList<String> splitWord = splitWords(wordsAsArray.get(i), 1);
-	    					String bin = "";
-	    					//Convert hex to binary, and formats it with 0's
-	    					for (String x: splitWord)
-	    					{
-	    						int hex = Integer.parseInt(x, 16);
-	    						bin += String.format("%4s", Integer.toBinaryString(hex)).replace(' ', '0');
-	    			
-	    					}
-	    					System.out.println("Line " + lineNumber + 
-									": Word " + wordNum + ": " );
-	    					System.out.println(wordsAsArray.get(i) + " " + bin);
-	    					wordNum++;
+		    				&&	(Integer.parseInt(address, 16)) <= ((Integer.parseInt("40000818", 16)) + numOfWords*2)) {
+		    				ArrayList<String> wordsAsArray = splitWords(data, 4);
+		    				for (int i = 0; i < wordsAsArray.size(); i++) {
+		    					
+		    					/* <Conditional statements that parse
+		    					 * each word using the word fields
+		    					 * chart> goes here	
+		    					 */
+		    					
+		    					//Split our split word into each split. Such as 1093 is 1,0,9,3 in an array
+		    					ArrayList<String> splitWord = splitWords(wordsAsArray.get(i), 1);
+		    					String bin = "";
+		    					//Convert hex to binary, and formats it with 0's
+		    					for (String x: splitWord)
+		    					{
+		    						int hex = Integer.parseInt(x, 16);
+		    						bin += String.format("%4s", Integer.toBinaryString(hex)).replace(' ', '0');
+		    					}
+		    					
+		    					//System.out.println("bin is " + bin);
+		    					switch (wordNum) {
+		    						case 0: System.out.print("Line " + lineNumber + 
+											": Word " + wordNum + ": " );
+		    								System.out.print("Rec_ctrl = " + Integer.parseInt(bin.substring(1,3)));
+		    								if (bin.matches("^.00[01]+")) System.out.println("(no recording)");
+		    								else if (bin.matches("^.10[01]+")) System.out.println("(no processing)");
+		    								else if (bin.matches("^.11[01]+")) System.out.println("(processing and recording)");
+		    								else System.out.println("(unknown)");
+		    							break;
+		    						case 1: System.out.print("Line " + lineNumber + 
+											": Word " + wordNum + ": " );
+		    								System.out.print("Cmd_Type = " + Integer.parseInt(bin.substring(0,3)));
+		    								if (bin.matches("^100[01]+")) System.out.println("type A");
+		    								else if (bin.matches("^101[01]+")) System.out.println("type B");
+		    								else if (bin.matches("^110[01]+")) System.out.println("type C");
+		    								else System.out.println("(unknown)");
+		    							break;
+		    						case 4: System.out.print("Line " + lineNumber + 
+											": Word " + wordNum + ": " );
+		    								System.out.print("Rec_Raw = " + Integer.parseInt(bin.substring(15,16)));
+		    								if (bin.matches("^[.]{15}0")) System.out.println("(disable)");
+		    								else if (bin.matches("^[.]{15}1")) System.out.println("(enable)");
+		    								else System.out.println("(unknown)");
+		    							break;
+		    						case 5: System.out.print("Line " + lineNumber + 
+											": Word " + wordNum + ": " );
+		    								System.out.println("Cmd_id = " +(Integer.parseInt(bin.substring(9,16), 2)));
+		    							break;
+		    						default: 
+		    							break;
+		    					}
+		    					
+		    					wordNum++;
+		    					
 	    	
 	    				}
 	    			}	
