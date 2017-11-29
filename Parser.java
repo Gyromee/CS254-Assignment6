@@ -1,5 +1,3 @@
-package assignment.project;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -26,7 +24,7 @@ public class Parser{
     //Read one line at a time and analyze it
     try (BufferedReader br = new BufferedReader(new FileReader(filename))){
         lineNumber = 0;
-        reading:
+        
         while((line = br.readLine())!= null) {
             lineNumber++;
             splitLine = line.trim().split("\\s+");
