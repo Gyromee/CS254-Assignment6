@@ -1,5 +1,7 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 
 public class Parser{
@@ -16,6 +18,7 @@ public class Parser{
     private int wordNum;
     private boolean isReverse;
     private boolean checkedFirstAddress;
+    private boolean reachedEndOfData;
     private int k;
     private String lowerRange;
     private String upperRange;
@@ -31,7 +34,8 @@ public class Parser{
     public void parse(){
     //Read one line at a time and analyze it
     try (BufferedReader br = new BufferedReader(new FileReader(filename))){
-        lineNumber = 0;
+    	BufferedWriter wr = new BufferedWriter(new FileWriter("parsed_command_data.txt"));
+    	lineNumber = 0;
         
         while((line = br.readLine())!= null) {
             lineNumber++;
@@ -43,7 +47,15 @@ public class Parser{
             	parseCommandData();
             	lowerRange = "40000818";
             	upperRange = "40000818";
-  
+            	//Output for the command
+                wr.write("\nLine " + lineNumber + ": " + cycle + " "
+                                    + command + " command: " + numOfWords + " words"); 
+                if (numOfWords == 0) {
+             	    wr.newLine();
+             	
+                }
+                wr.newLine();
+                
             }
             //Catches D-to-S
             if(splitLine[6].equals("40000C18")) {
@@ -51,12 +63,24 @@ public class Parser{
             	parseCommandData();
             	lowerRange = "40000C20";
             	upperRange = "4000101C";
+            	//Output for the command
+                wr.write("\nLine " + lineNumber + ": " + cycle + " "
+                                    + command + " command: " + numOfWords + " words"); 
+                if (numOfWords == 0) {
+             	    wr.newLine();
+             	   
+                }
+                wr.newLine();
+           
+                
+                
             }
             
           
             //Parse the data of the command   
             while (wordNum < numOfWords) {  
-                    line = br.readLine();
+            		
+            		line = br.readLine();
                     lineNumber++;
                     splitLine = line.trim().split("\\s+");
                     address = splitLine[6]; 
@@ -68,7 +92,7 @@ public class Parser{
                     	//then we know the words are in reverse
                     	if (Integer.parseInt(address, 16) == ((Integer.parseInt(lowerRange, 16)) + numOfWords*2 - 4)) {
                             isReverse = true;
-                            System.out.println("is in reverse");
+                            
                     	}
 
                     	checkedFirstAddress = true;
@@ -99,129 +123,225 @@ public class Parser{
                                 if (address.equals( "40000818") || address.equals("40000C20")){
                                     //Word 0
                                     if (k == 0) {
-                                        System.out.print("Line " + lineNumber + ": Word 0: " );                                         
-                                        System.out.print("Rec_ctrl = " + Integer.parseInt(bin.substring(1,3)));
-                                        if (bin.matches("^.00[01]+")) System.out.println("(no recording)");
-                                        else if (bin.matches("^.10[01]+")) System.out.println(" (no processing)");
-                                        else if (bin.matches("^.11[01]+")) System.out.println(" (processing and recording)");
-                                        else System.out.println(" (unknown)");
+                                        wr.write("Line " + lineNumber + ": Word 0: " );                                         
+                                        wr.write("Rec_Ctrl = " + Integer.parseInt(bin.substring(1,3)));
+                                        if (bin.matches("^.00[01]+")) {
+                                        	wr.write(" (no recording)");
+                                        	wr.newLine();
+                                        }
+                                        else if (bin.matches("^.10[01]+")) {
+                                        	wr.write(" (no processing)");
+                                        	wr.newLine();
+                                        }
+                                        else if (bin.matches("^.11[01]+")) {
+                                        	wr.write(" (processing and recording)");
+                                        	wr.newLine();
+                                        }
+                                        else {
+                                        	wr.write(" (unknown)");
+                                        	wr.newLine();
+                                        }
                                     }
                                     //Word 1
                                     if (k == 1) {
-                                        System.out.print("Line " + lineNumber + ": Word 1: " );                                         
-                                        System.out.print("Cmd_Type = " + Integer.parseInt(bin.substring(0,3)));
-                                        if (bin.matches("^100[01]+")) System.out.println(" type A");
-                                        else if (bin.matches("^101[01]+")) System.out.println(" type B");
-                                        else if (bin.matches("^110[01]+")) System.out.println(" type C");
-                                        else System.out.println(" (unknown)");
+                                        wr.write("Line " + lineNumber + ": Word 1: " );                                         
+                                        wr.write("Cmd_Type = " + Integer.parseInt(bin.substring(0,3), 2));
+                                        if (bin.matches("^100[01]+")) {
+                                        	wr.write(" (Type C)");
+                                        	wr.newLine();
+                                        }
+                                        else if (bin.matches("^101[01]+")) {
+                                        	wr.write(" (Type B)");
+                                        	wr.newLine();
+                                        }
+                                        else if (bin.matches("^110[01]+")) {
+                                        	wr.write(" (Type C)");
+                                        	wr.newLine();
+                                        }
+                                        else {
+                                        	wr.write(" (unknown)");
+                                        	wr.newLine();
+                                        }
                                     }
                                 }
                                 //Parse word 4 and 5
                                 if (address.equals("40000820") || address.equals("40000C28")){
 	                                //Word 4
 	                                if (k == 0) {
-	                                    System.out.print("Line " + lineNumber + ": Word 4: " );                                         
-	                                    System.out.print("Rec_Raw = " + Integer.parseInt(bin.substring(15,16)));
-	                                    if (bin.matches("^.{15}0")) System.out.println(" (disable)");
-	                                    else if (bin.matches("^.{15}1")) System.out.println(" (enable)");
-	                                    else System.out.println(" (unknown)");
+	                                    wr.write("Line " + lineNumber + ": Word 4: " );                                         
+	                                    wr.write("Rec_Raw = " + Integer.parseInt(bin.substring(15,16)));
+	                                    if (bin.matches("^.{15}0")) {
+	                                    	wr.write(" (disable)");
+	                                    	wr.newLine();
+	                                    }
+	                                    else if (bin.matches("^.{15}1")) {
+	                                    	wr.write(" (enable)");
+	                                    	wr.newLine();
+	                                    }
+	                                    else {
+	                                    	wr.write(" (unknown)");
+	                                    	wr.newLine();
+	                                    }
 	                                }
 	                                //Word 5
                                 	if (k == 1) {
-                                		System.out.print("Line " + lineNumber + ": Word 5: " );                                         
-                                		System.out.println("Cmd_id = " +(Integer.parseInt(bin.substring(9,16), 2)));
+                                		wr.write("Line " + lineNumber + ": Word 5: " );                                         
+                                		wr.write("Cmd_ID = " +(Integer.parseInt(bin.substring(9,16), 2)));
+                                		wr.newLine();
                                 	}
                                 }
                                 //Parse Word 10
                                 if (address.equals("4000082C") || address.equals("40000C34")){
-                                	 
                                 	//Word 10
                                 	if (k == 0) {
-                                         System.out.print("Line " + lineNumber + ": Word 10: " );                                            
-                                         System.out.println("Num_Responses = " + Integer.parseInt(bin.substring(0,5), 2));
-                                     }
+                                         wr.write("Line " + lineNumber + ": Word 10: " );                                            
+                                         wr.write("Num_Responses = " + Integer.parseInt(bin.substring(0,5), 2));
+                                         wr.newLine();
+                                	}
                                 }
                                 //Parse word 15
                                 if (address.equals("40000C3C")){
 	                            	//Word 15
 	                            	if (k == 0){
-	                            		 System.out.print("Line " + lineNumber + ": Word 15: " );  
-	                            		 System.out.print("Reset_Enable = " + Integer.parseInt(bin.substring(13,14)));
-	                            		 if(bin.matches("^[01]{13}1[01][01]")) System.out.println(" (Enable)");
-	                            		 else if (bin.matches("^[01]{13}0[01][01]")) System.out.println(" (Disable)");
-	                            		 else System.out.println("(unknown)");
+	                            		 wr.write("Line " + lineNumber + ": Word 15: " );  
+	                            		 wr.write("Reset_Enable = " + Integer.parseInt(bin.substring(13,14)));
+	                            		 if(bin.matches("^[01]{13}1[01][01]")) {
+	                            			 wr.write(" (Enable)");
+	                            			 wr.newLine();
+	                            		 }
+	                            		 else if (bin.matches("^[01]{13}0[01][01]")) {
+	                            			 wr.write(" (Disable)");
+	                            			 wr.newLine();
+	                            		 }
+	                            		 else {
+	                            			 wr.write("(unknown)");
+	                            			 wr.newLine();
+	                            		 }
 	                            	}
                                 }
                                 //Parse Word 22
                                 if (address.equals("40000C4C")){
                                 	//Word 22
                                 	if (k == 0){
-                                		 System.out.print("Line " + lineNumber + ": Word 22: " );  
-                                		 System.out.print("Direction = " + Integer.parseInt(bin.substring(12,13)));
-                                		 if(bin.matches("^[01]{12}1[01]{3}")) System.out.println(" (left)");
-                                		 else if (bin.matches("^[01]{12}0[01]{3}")) System.out.println(" (right)");
-                                		 else System.out.println("(unknown)");
+                                		 wr.write("Line " + lineNumber + ": Word 22: " );  
+                                		 wr.write("Direction = " + Integer.parseInt(bin.substring(12,13)));
+                                		 if(bin.matches("^[01]{12}1[01]{3}")) {
+                                			 wr.write(" (Left)");
+                                			 wr.newLine();
+                                		 }
+                                		 else if (bin.matches("^[01]{12}0[01]{3}")) {
+                                			 wr.write(" (Right)");
+                                			 wr.newLine();
+                                		 }
+                                		 else {
+                                			 wr.write("(unknown)");
+                                			 wr.newLine();
+                                		 }
                                 	}
                                 }
                                 //Parse Word 32
                                 if (address.equals("40000C60")) {
                                 	//Word 32
                                 	if (k == 0){
-                                		 System.out.print("Line " + lineNumber + ": Word 32: " );  
-                                		 System.out.println("Num_Samples = " + (Integer.parseInt(bin.substring(1,16), 2)));
+                                		 wr.write("Line " + lineNumber + ": Word 32: " );  
+                                		 wr.write("Num_Samples = " + (Integer.parseInt(bin.substring(1,16), 2)));
+                                		 wr.newLine();
                                 	}
                                 }
                                 //Parse Word 37
                                 if (address.equals("40000C68")) {
                                 	//Word 37
                                 	if(k == 0){
-                                		System.out.print("Line " + lineNumber + ": Word 37: " );  
-                                		System.out.print("Parity = " + Integer.parseInt(bin.substring(0,1)));
-                                		if (bin.matches("^0[01]{15}")) System.out.println(" (even)");
-                                		else if (bin.matches("^1[01]{15}")) System.out.println(" (odd)");
-                                		else System.out.println("(unknown)");
+                                		wr.write("Line " + lineNumber + ": Word 37: " );  
+                                		wr.write("Parity = " + Integer.parseInt(bin.substring(0,1)));
+                                		if (bin.matches("^0[01]{15}")) {
+                                			wr.write(" (even)");
+                                			wr.newLine();
+                                		}
+                                		
+                                		else if (bin.matches("^1[01]{15}")) {
+                                			wr.write(" (odd)");
+                                			wr.newLine();
+                                		}
+                                		else {
+                                			wr.write("(unknown)");
+                                			wr.newLine();
+                                		}
                                 	}
                             	}
                                 //Parse Word 38
                                 if (address.equals("40000C6C")) {
                                 	//Word 38
                                 	if (k == 0){
-                                		System.out.print("Line " + lineNumber + ": Word 38: " ); 
-                                		System.out.print("Test = " + Integer.parseInt(bin.substring(1,2)));
-                                		if (bin.matches("^[01]0[01]{14}")) System.out.println(" (disable)");
-                                		else if (bin.matches("^[01]1[01]{14}")) System.out.println(" (enable)");
-                                		else System.out.println("(unknown)");
+                                		wr.write("Line " + lineNumber + ": Word 38: " ); 
+                                		wr.write("Test = " + Integer.parseInt(bin.substring(1,2)));
+                                		if (bin.matches("^[01]0[01]{14}")) {
+                                			wr.write(" (disable)");
+                                			wr.newLine();
+                                		}
+                                		else if (bin.matches("^[01]1[01]{14}")) {
+                                			wr.write(" (enable)");
+                                			wr.newLine();
+                                		}
+                                		else {
+                                			wr.write("(unknown)");
+                                			wr.newLine();
+                                		}
                                 	}
                                 }
                                 //Parse Word 40 and 41
                                 if (address.equals("40000C70")) {
                                 	//Word 40
                                 	if (k == 0){
-                                		System.out.print("Line " + lineNumber + ": Word 40: " ); 
-                                		System.out.print("Ctrl_Enable = " + Integer.parseInt(bin.substring(8,9)));
-                                		if (bin.matches("^[01]{8}0[01]{7}")) System.out.println(" (disable)");
-                                		else if (bin.matches("^[01]{8}1[01]{7}")) System.out.println(" (enable)");
-                                		else System.out.println(" (unknown)");
+                                		wr.write("Line " + lineNumber + ": Word 40: " ); 
+                                		wr.write("Ctrl_Enable = " + Integer.parseInt(bin.substring(8,9)));
+                                		if (bin.matches("^[01]{8}0[01]{7}")) {
+                                			wr.write(" (disable)");
+                                			wr.newLine();
+                                		}
+                                		else if (bin.matches("^[01]{8}1[01]{7}")) {
+                                			wr.write(" (enable)");
+                                			wr.newLine();
+                                		}
+                                		else {
+                                			wr.write(" (unknown)");
+                                			wr.newLine();
+                                		}
                                 	}   
                                 	//Word 41
                                 	if (k == 1){
-                                		System.out.print("Line " + lineNumber + ": Word 41: " );
-                                		System.out.println("Code = " +(Integer.parseInt(bin.substring(1,8), 2)));
+                                		wr.write("Line " + lineNumber + ": Word 41: " );
+                                		wr.write("Code = " +(Integer.parseInt(bin.substring(1,8), 2)));
+                                		wr.newLine();
                                 	}
                                 	
                                 }
                                
-                                wordNum++;
+                               
                                 if (isReverse == true)
                                     k--;
                                 else
                                     k++;
+                                wordNum++;
+                                if (wordNum == (numOfWords))
+                        			reachedEndOfData = true;
                         }
-                    
+                            
+                       
+                         	
                     }   
+                   
                 }
-            }                   
-       }catch (Exception e){
+            
+            if(reachedEndOfData) {
+            	wr.newLine();
+            	reachedEndOfData = false;
+            }
+          
+        	}
+       
+       wr.close();
+    	}catch (Exception e){
          e.printStackTrace();
        }
 }
@@ -245,9 +365,7 @@ public class Parser{
         //Read the data
         data = splitLine[7];
         numOfWords = Integer.parseInt(data,16) / 2;
-        //Output for the command
-        System.out.println("\nLine " + lineNumber + ": " + cycle + " "
-                            + command + " command: " + numOfWords + " words.");
+
         wordNum = 0;
         isReverse = false;
         checkedFirstAddress = false;
