@@ -104,15 +104,18 @@ public class Parser{
                     splitLine = line.trim().split("\\s+");
                     address = splitLine[6]; 
                     data = splitLine[7];
-                    
+             
                     if (previousRelTime != null)
-                    dataRate.addSeconds(previousRelTime);
+                        dataRate.addSeconds(previousRelTime);
+                        
                     
                     dataRate.addSize(splitLine[8]);
-    	            dataRate.addType(splitLine[9], "S-to-D");
+    	            dataRate.addType(splitLine[9], command);
     	            
                     previousRelTime = splitLine[2];
                     
+                    
+                   
                     
                     //Checks if the first address in the command data is the largest 
                     if (checkedFirstAddress == false) {
@@ -363,9 +366,10 @@ public class Parser{
             	reachedEndOfData = false;
             }
         }
+        
        wr.write("Read S-to-D: " + String.format("%.2f", dataRate.total()[0]) + " Megabits/sec");
        wr.newLine();
-       wr.write("Read D-to-S: " + String.format("%.2f", dataRate.total()[2]) +" Megabits/sec");
+       wr.write("Read D-to-S: " + String.format("%.2f", dataRate.total()[2]) + " Megabits/sec");
        wr.newLine();
        wr.write("Write S-to-D: " + String.format("%.2f", dataRate.total()[1]) + " Megabits/sec");
        wr.newLine();
