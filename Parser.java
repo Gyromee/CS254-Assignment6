@@ -23,14 +23,13 @@ public class Parser{
     private String lowerRange;
     private String upperRange;
     private String previousRelTime;
-    private ArrayList<Double> relTime;
     private DataRate dataRate;
     private boolean readSpeed;
     
     //Constructor
     public Parser(String filename) {
         this.filename = filename;
-        relTime = new ArrayList<Double>();
+        reachedEndOfData = false;
         dataRate = new DataRate();
         readSpeed = false;
     }
@@ -45,8 +44,7 @@ public class Parser{
         while((line = br.readLine())!= null) {
             
             splitLine = line.trim().split("\\s+");
-            
-            
+             
             if (previousRelTime != null)
                 dataRate.addSeconds(previousRelTime);
                
@@ -58,8 +56,6 @@ public class Parser{
             else
             	previousRelTime = null;
         
-           
-            
             lineNumber++;
             
             //Catches S-to-D command
@@ -79,7 +75,6 @@ public class Parser{
                 }
                 wr.newLine();
                 readSpeed = true;
-                
             }
             //Catches D-to-S
             if(splitLine[6].equals("40000C18")) {
@@ -95,14 +90,10 @@ public class Parser{
                 wr.write("\nLine " + lineNumber + ": " + cycle + " "
                                     + command + " command: " + numOfWords + " words"); 
                 if (numOfWords == 0) {
-             	    wr.newLine();
-             	   
+             	    wr.newLine();   
                 }
                 wr.newLine();
-                readSpeed = true;
-           
-                
-                
+                readSpeed = true;      
             }
            
             //Parse the data of the command   
@@ -131,7 +122,6 @@ public class Parser{
                             isReverse = true;
                             
                     	}
-
                     	checkedFirstAddress = true;
                     }
                     
@@ -372,8 +362,7 @@ public class Parser{
             	wr.newLine();
             	reachedEndOfData = false;
             }
-          
-        	}
+        }
        wr.write("Read S-to-D: " + String.format("%.2f", dataRate.total()[0]) + " Megabits/sec");
        wr.newLine();
        wr.write("Read D-to-S: " + String.format("%.2f", dataRate.total()[2]) +" Megabits/sec");
