@@ -22,12 +22,17 @@ public class Parser{
     private int k;
     private String lowerRange;
     private String upperRange;
-    
-    
+    private String previousRelTime;
+    private ArrayList<Double> relTime;
+    private DataRate dataRate;
+    private boolean readSpeed;
     
     //Constructor
     public Parser(String filename) {
         this.filename = filename;
+        relTime = new ArrayList<Double>();
+        dataRate = new DataRate();
+        readSpeed = false;
     }
     
     //Method to parse the file's data
@@ -38,8 +43,24 @@ public class Parser{
     	lineNumber = 0;
         
         while((line = br.readLine())!= null) {
-            lineNumber++;
+            
             splitLine = line.trim().split("\\s+");
+            
+            
+            if (previousRelTime != null)
+                dataRate.addSeconds(previousRelTime);
+               
+            
+            if(readSpeed == true) {
+             	previousRelTime = splitLine[2];
+             	readSpeed = false;
+            }
+            else
+            	previousRelTime = null;
+        
+           
+            
+            lineNumber++;
             
             //Catches S-to-D command
             if(splitLine[6].equals("40000810")) {
@@ -47,6 +68,8 @@ public class Parser{
             	parseCommandData();
             	lowerRange = "40000818";
             	upperRange = "40000818";
+            	dataRate.addSize(splitLine[8]);
+ 	            dataRate.addType(splitLine[9], "S-to-D");
             	//Output for the command
                 wr.write("\nLine " + lineNumber + ": " + cycle + " "
                                     + command + " command: " + numOfWords + " words"); 
@@ -55,6 +78,7 @@ public class Parser{
              	
                 }
                 wr.newLine();
+                readSpeed = true;
                 
             }
             //Catches D-to-S
@@ -63,6 +87,10 @@ public class Parser{
             	parseCommandData();
             	lowerRange = "40000C20";
             	upperRange = "4000101C";
+            	dataRate.addSize(splitLine[8]);
+ 	            dataRate.addType(splitLine[9], "D-to-S");
+ 	            
+ 	
             	//Output for the command
                 wr.write("\nLine " + lineNumber + ": " + cycle + " "
                                     + command + " command: " + numOfWords + " words"); 
@@ -71,12 +99,12 @@ public class Parser{
              	   
                 }
                 wr.newLine();
+                readSpeed = true;
            
                 
                 
             }
-            
-          
+           
             //Parse the data of the command   
             while (wordNum < numOfWords) {  
             		
@@ -85,6 +113,15 @@ public class Parser{
                     splitLine = line.trim().split("\\s+");
                     address = splitLine[6]; 
                     data = splitLine[7];
+                    
+                    if (previousRelTime != null)
+                    dataRate.addSeconds(previousRelTime);
+                    
+                    dataRate.addSize(splitLine[8]);
+    	            dataRate.addType(splitLine[9], "S-to-D");
+    	            
+                    previousRelTime = splitLine[2];
+                    
                     
                     //Checks if the first address in the command data is the largest 
                     if (checkedFirstAddress == false) {
@@ -323,23 +360,27 @@ public class Parser{
                                 else
                                     k++;
                                 wordNum++;
-                                if (wordNum == (numOfWords))
+                                if (wordNum == (numOfWords)) {
                         			reachedEndOfData = true;
+                        			readSpeed = true;
+                                }
                         }
-                            
-                       
-                         	
                     }   
                    
                 }
-            
             if(reachedEndOfData) {
             	wr.newLine();
             	reachedEndOfData = false;
             }
           
         	}
-       
+       wr.write("Read S-to-D: " + String.format("%.2f", dataRate.total()[0]) + " Megabits/sec");
+       wr.newLine();
+       wr.write("Read D-to-S: " + String.format("%.2f", dataRate.total()[2]) +" Megabits/sec");
+       wr.newLine();
+       wr.write("Write S-to-D: " + String.format("%.2f", dataRate.total()[1]) + " Megabits/sec");
+       wr.newLine();
+       wr.write("Write D-to-S: " + String.format("%.2f", dataRate.total()[3]) + " Megabits/sec");
        wr.close();
     	}catch (Exception e){
          e.printStackTrace();
