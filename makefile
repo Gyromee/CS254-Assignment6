@@ -9,6 +9,7 @@ JC = javac
 
 CLASSES = \
 	Parser.java \
+	DataRate.java \
 	Driver.java 
 	
 MAIN = Driver
